@@ -1,13 +1,13 @@
 name: Build iOS arm64-simulator
 
+on:
+  workflow_dispatch: # manually triggered
+
 env:
   TARGET_ARCH: arm64-simulator
   XCODE_VERSION: 15.4
 
-on:
-  workflow_dispatch: # manually triggered
-
-
+jobs:
   build:
     runs-on: macos-latest
 
