@@ -1,0 +1,42 @@
+name: Build iOS arm64-simulator
+
+env:
+  TARGET_ARCH: arm64-simulator
+  XCODE_VERSION: 15.4
+
+on:
+  workflow_dispatch: # manually triggered
+
+
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /Library/Frameworks/Mono.framework
+          sudo rm -rf /Library/Frameworks/Xamarin.iOS.framework
+          sudo rm -rf /Library/Frameworks/Xamarin.Android.framework
+          sudo rm -rf /Users/runner/Library/Android
+          sudo rm -rf /usr/local/share/powershell
+          sudo find /Applications -type d -name "Xcode_*.app" ! -name "Xcode_$XCODE_VERSION.app" -prune -exec rm -rf "{}" \;
+
+      - uses: actions/checkout@v4
+
+      - name: Xcode Select Version
+        uses: mobiledevops/xcode-select-version-action@v1
+        with:
+          xcode-select-version: ${{ env.XCODE_VERSION }}
+
+      # Python 3.12 (chosen by configure.py) doesn't have support for distutils
+      # https://github.com/nodejs/node-gyp/issues/2869 workaround
+      - name: Build
+        run: |
+          python3.12 -m venv .
+          source bin/activate
+          python3.12 -m pip install setuptools
+          ./tools/ios_framework_prepare.sh $TARGET_ARCH
+      - uses: actions/upload-artifact@v4
+        with:
+          name: node-ios-${{ env.TARGET_ARCH }}
+          path: out_ios_${{ env.TARGET_ARCH }}
