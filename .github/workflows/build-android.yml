@@ -1,17 +1,18 @@
-name: Build Android arm64
+name: Build Android
 
 on:
   workflow_dispatch: # manually triggered
 
 env:
   ANDROID_TARGET_SDK_VERSION: 27
+  RUNNER_OS: ubuntu-24.04
 
 jobs:
   build-android:
     strategy:
       fail-fast: false
       matrix:
-        os: ubuntu-24.04
+        os: ${{ env.RUNNER_OS }}
         target_arch:
           - arm
           - arm64
@@ -48,9 +49,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config:
-          - { os: ${{ env.RUNNER_OS }} }
-    runs-on: ${{ matrix.config.os }}
+          os: ${{ env.RUNNER_OS }}
+    runs-on: ${{ matrix.os }}
     needs: build-android
     steps:
       - uses: actions/checkout@v4
