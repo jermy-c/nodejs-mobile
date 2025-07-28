@@ -5,21 +5,21 @@ on:
 
 env:
   ANDROID_TARGET_SDK_VERSION: 27
-  RUNNER_OS: ubuntu-24.04
 
 jobs:
   build-android:
     strategy:
       fail-fast: false
       matrix:
-        config:
-          - { os: ${{ env.RUNNER_OS }}, target_arch: arm }
-          - { os: ${{ env.RUNNER_OS }}, target_arch: arm64 }
-          - { os: ${{ env.RUNNER_OS }}, target_arch: x86_64 }
+        os: ubuntu-24.04
+        target_arch:
+          - arm
+          - arm64
+          - x86_64
 
-    runs-on: ${{ matrix.config.os }}
+    runs-on: ${{ matrix.os }}
     env:
-      TARGET_ARCH: ${{ matrix.config.target_arch }}
+      TARGET_ARCH: ${{ matrix.target_arch }}
 
     steps:
       - uses: actions/checkout@v4
