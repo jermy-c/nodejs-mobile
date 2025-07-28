@@ -5,14 +5,13 @@ on:
 
 env:
   ANDROID_TARGET_SDK_VERSION: 27
-  RUNNER_OS: ubuntu-24.04
 
 jobs:
   build-android:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ env.RUNNER_OS }}
+        os: ubuntu-24.04
         target_arch:
           - arm
           - arm64
@@ -49,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          os: ${{ env.RUNNER_OS }}
+          os: ubuntu-24.04
     runs-on: ${{ matrix.os }}
     needs: build-android
     steps:
