@@ -2,6 +2,8 @@ name: Build Android
 
 on:
   workflow_dispatch: # manually triggered
+  push:
+    tags: 'v*'
 
 env:
   SCCACHE_GHA_ENABLED: 'true'
@@ -94,3 +96,8 @@ jobs:
       - uses: geekyeggo/delete-artifact@v5
         with:
           name: node-android-*
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts
