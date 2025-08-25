@@ -4,12 +4,19 @@ on:
   workflow_dispatch: # manually triggered
 
 env:
-  TARGET_ARCH: arm64-simulator
   XCODE_VERSION: 15.4
 
 jobs:
-  build:
-    runs-on: macos-latest
+  build-ios:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04]
+        target_arch: [arm64, arm64-simulator, x64-simulator]
+
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET_ARCH: ${{ matrix.target_arch }}
 
     steps:
       - name: Free Disk Space
