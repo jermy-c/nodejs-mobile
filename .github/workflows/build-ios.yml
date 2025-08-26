@@ -1,66 +1,15 @@
-name: Build
+name: Build iOS
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch: # manually triggered
 
 env:
   SCCACHE_GHA_ENABLED: 'true'
-  ANDROID_NDK_VERSION: r27d
-  ANDROID_TARGET_SDK_VERSION: 24
-  LDFLAGS: '-Wl,-z,max-page-size=16384'
 
 permissions:
   contents: read
 
 jobs:
-  build-android:
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - { os: ubuntu-24.04, target_arch: arm }
-          - { os: ubuntu-24.04, target_arch: arm64 }
-          - { os: ubuntu-24.04, target_arch: x86_64 }
-
-    runs-on: ${{ matrix.config.os }}
-    env:
-      TARGET_ARCH: ${{ matrix.config.target_arch }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
-
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.6
-
-      - name: Install build utils
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
-
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        with:
-          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
-          add-to-path: false
-
-      - name: Build
-        env:
-          MY_ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-        run: |
-          ./tools/android_build.sh $MY_ANDROID_NDK_HOME $ANDROID_TARGET_SDK_VERSION $TARGET_ARCH
-          rm -rf ./out_android/libnode
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: node-android-${{ env.TARGET_ARCH }}
-          path: out_android
-
   build-ios:
     strategy:
       fail-fast: false
@@ -68,7 +17,7 @@ jobs:
         config:
           - { os: macos-15, target_arch: arm64, xcode: 16.4 }
           - { os: macos-15, target_arch: arm64-simulator, xcode: 16.4 }
-          - { os: macos-13, target_arch: x64-simulator, xcode: 15.2 }
+          - { os: macos-15-large, target_arch: x64-simulator, xcode: 16.4 }
 
     runs-on: ${{ matrix.config.os }}
     env:
@@ -111,62 +60,11 @@ jobs:
           name: node-ios-${{ env.TARGET_ARCH }}
           path: out_ios_${{ env.TARGET_ARCH }}
 
-  combine-android:
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - { os: ubuntu-24.04 }
-    runs-on: ${{ matrix.config.os }}
-    needs: build-android
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
-
-      - name: Install build utils
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
-
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: ${{ env.ANDROID_NDK_VERSION }}
-
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: node-android-*
-          merge-multiple: true
-          path: out_android
-
-      - run: rm -rf out_android/libnode
-
-      - name: Generate config.gypi
-        run: ./configure
-
-      - name: Combine
-        run: |
-          mkdir -p artifacts/bin
-          mkdir -p artifacts/include
-          cp -R out_android/* artifacts/bin
-          ./tools/copy_libnode_headers.sh android
-          cp -R out_android/libnode/include/* artifacts/include
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: nodejs-mobile-android
-          path: artifacts
-
-      - uses: geekyeggo/delete-artifact@v5
-        with:
-          name: node-android-*
-
   combine-ios:
     strategy:
       matrix:
         config:
-          - { os: macos-14, xcode: 15.4 }
+          - { os: macos-15, xcode: 16.4 }
     runs-on: ${{ matrix.config.os }}
     needs: build-ios
     steps:
