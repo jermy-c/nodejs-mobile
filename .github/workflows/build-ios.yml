@@ -15,9 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { os: macos-15, target_arch: arm64, xcode: 16.4 }
-          - { os: macos-15, target_arch: arm64-simulator, xcode: 16.4 }
-          - { os: macos-15-large, target_arch: x64-simulator, xcode: 16.4 }
+          - { os: macos-latest, target_arch: arm64, xcode: 16.4 }
+          - { os: macos-latest, target_arch: arm64-simulator, xcode: 16.4 }
 
     runs-on: ${{ matrix.config.os }}
     env:
@@ -64,7 +63,7 @@ jobs:
     strategy:
       matrix:
         config:
-          - { os: macos-15, xcode: 16.4 }
+          - { os: macos-latest, xcode: 16.4 }
     runs-on: ${{ matrix.config.os }}
     needs: build-ios
     steps:
